@@ -1,3 +1,5 @@
+import sys
+
 try:
     from ._version import version as VERSION
 except ImportError:
@@ -16,11 +18,14 @@ ORGANIZATION_NAME = "My Organization"
 
 def run():
     import locale
-    import sys
 
+    from PySide6.QtCore import QCommandLineParser
     from PySide6.QtWidgets import QApplication
 
     from app.widgets.mainwindow import MainWindow
+
+    # Handle all uncaught exceptions
+    sys.excepthook = _exception_hook
 
     locale.setlocale(locale.LC_ALL, "")
 
@@ -30,6 +35,24 @@ def run():
     QApplication.setApplicationVersion(VERSION)
 
     app = QApplication(sys.argv)
+
+    parser = QCommandLineParser()
+    parser.setApplicationDescription(APP_DESCRIPTION)
+    parser.addHelpOption()
+    parser.addVersionOption()
+
     widget = MainWindow()
     widget.show()
     sys.exit(app.exec())
+
+
+def _exception_hook(exc_type, exc_value, exc_traceback):
+    import logging
+    logger = logging.getLogger(APP_NAME)
+
+    if issubclass(exc_type, KeyboardInterrupt):
+        # ignore keyboard interrupt to support console applications
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+    else:
+        exc_info = (exc_type, exc_value, exc_traceback)
+        logger.exception(f"Uncaught exception", exc_info=exc_info)
