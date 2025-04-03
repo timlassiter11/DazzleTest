@@ -1,0 +1,41 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build Executable",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "setup.py",
+                "build",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+        },
+        {
+            "label": "Build Installer",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": [
+                "setup.py",
+                "bdist_msi",
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+        },
+        {
+            "label": "Compile Resources",
+            "type": "shell",
+            "command": "${command:python.interpreterPath}",
+            "args": ["${workspaceFolder}${pathSeparator}compile.py"],
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+        }
+    ]
+}
