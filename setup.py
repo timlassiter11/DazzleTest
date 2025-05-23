@@ -1,3 +1,4 @@
+import os
 import sys
 import sysconfig
 
@@ -8,13 +9,10 @@ from app import APP_AUTHOR, APP_DESCRIPTION, APP_NAME
 app_name = APP_NAME
 description = APP_DESCRIPTION
 author = APP_AUTHOR
-icon = "./icons/icon.ico"
+icon = "./assets/icons/icon.ico"
 
 
-# TODO: Generate a unique upgrade code by running the below command.
-# python -c "import uuid; print(str(uuid.uuid3(uuid.NAMESPACE_DNS, 'myapp.example.com')).upper());"
-# https://learn.microsoft.com/en-us/windows/win32/msi/using-an-upgradecode
-upgrade_code = ""
+upgrade_code = "3799EFA4-C852-3F61-8004-16BDAB266CF5"
 # Start Menu Folder
 start_folder = ""
 
@@ -30,16 +28,15 @@ install_dir = (
 build_exe_options = {
     "zip_include_packages": ["encoder", "PySide6"],
     "include_msvcr": True,
+    "include_files": [
+        ("test_images", "test_images")
+    ],
     "excludes": [
         "tkinter",
         "wheel",
         "setuptools",
         "setuptools_scm",
-        "email",
         "unittest",
-        "html",
-        "http",
-        "xml",
     ],
 }
 

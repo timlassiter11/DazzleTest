@@ -9,12 +9,13 @@ except ImportError:
 
 
 # TODO: Update application information
-APP_NAME = "My App"
-APP_DESCRIPTION = "My PySide App!"
-APP_AUTHOR = "John Doe"
-DOMAIN_NAME = "example.com"
-ORGANIZATION_NAME = "My Organization"
+APP_NAME = "DazzleTest"
+APP_DESCRIPTION = "Utility for testing display brightness"
+APP_AUTHOR = "Timothy Lassiter"
+DOMAIN_NAME = "tlassiter"
+ORGANIZATION_NAME = "tlassiter"
 
+TEST_IMAGES_DIR = "./test_images"
 
 def run():
     import locale

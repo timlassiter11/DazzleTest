@@ -139,3 +139,5 @@ app/ui/ui_*.py
 app/ui/rc_*.py
 
 app/_version.py
+
+last_used.json

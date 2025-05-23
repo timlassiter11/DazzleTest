@@ -57,7 +57,7 @@ if len(sys.argv) == 1:
         output_path = Path(os.path.join(ui_dir, f"ui_{input_path.stem}.py"))
         _run_command(output_path, input_path, args)
 
-    for input_path in Path(cwd).glob("*.qrc"):
+    for input_path in Path(designer_dir).glob("*.qrc"):
         output_path = Path(os.path.join(ui_dir, f"rc_{input_path.stem}.py"))
         _run_command(output_path, input_path)
 

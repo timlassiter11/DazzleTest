@@ -1,0 +1,13 @@
+[project]
+name = "dazzle"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cx-freeze>=8.3.0",
+    "pyparsing>=3.2.3",
+    "pyside6>=6.9.0",
+    "qtawesome>=1.4.0",
+    "setuptools-scm>=8.3.1",
+]
