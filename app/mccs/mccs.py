@@ -1,4 +1,5 @@
 import enum
+import logging
 import re
 from dataclasses import dataclass
 from types import TracebackType
@@ -11,6 +12,7 @@ from app.mccs.vcp_codes import ReadWriteFlag, VCPDefinition, VCPType
 from . import vcp
 from .vcp import VCP
 
+logger = logging.getLogger(__file__)
 
 class VCPDefinitions(enum.Enum):
 
@@ -318,7 +320,7 @@ class Monitor:
         assert self._in_ctx, "This function must be run within the context manager"
         if not code.writeable:
             raise TypeError(f"cannot write read-only code: {code.name}")
-        elif code.type == "c":
+        elif code.type == VCPType.CONTINUOUS:
             maximum = self._get_vcp_maximum(code)
             if value > maximum:
                 raise ValueError(f"value of {value} exceeds code maximum of {maximum}")
@@ -502,21 +504,21 @@ def _parse_capabilities(caps_str: str) -> Capabilities:
             pass
 
     if protocol is None:
-        raise ValueError("Protocol not found in capabilities string")
+        logger.warning("prot missing from capabilities string")
     if type is None:
-        raise ValueError("Type not found in capabilities string")
+        logger.warning("type missing from capabilities string")
     if model is None:
-        raise ValueError("Model not found in capabilities string")
+        logger.warning("model missing from capabilities string")
     if mccs_version is None:
-        raise ValueError("MCCS version not found in capabilities string")
+        logger.warning("mccs_ver missing from capabilities string")
     if vcps is None:
-        raise ValueError("VCPs not found in capabilities string")
+        logger.warning("vcps missing from capabilities string")
 
     return Capabilities(
-        protocol=protocol,
-        type=type,
-        model=model,
-        mccs_version=mccs_version,
-        vcps=vcps,
+        protocol=protocol or "",
+        type=type or "",
+        model=model or "",
+        mccs_version=mccs_version or "",
+        vcps=vcps or [],
         vcp_names={},
     )
