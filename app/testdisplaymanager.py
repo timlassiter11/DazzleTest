@@ -24,7 +24,13 @@ class TestDisplayManager(QObject):
 
     _widget: QWidget
     _current_index: int = 0
-    _pause_backlight: int = 100
+
+    # This should get updated when we pass a display to start the test
+    # Just use some sane default value.
+    _backlight_max: int = 100
+    _starting_backlight: int = _backlight_max
+    _pause_backlight: int = _backlight_max
+    
     _is_paused: bool = False
 
     def __init__(self, parent: QObject | None = None) -> None:
@@ -93,6 +99,13 @@ class TestDisplayManager(QObject):
         self._steps = steps
         self._is_paused = False
 
+        if display.vcp:
+            #TODO: Check to make sure the display supports backlight functions
+            with display.vcp:
+                self._starting_backlight = display.vcp.backlight
+                self._backlight_max = display.vcp.backlight_maximum
+                self._pause_backlight = self._backlight_max
+        
         self._widget.setScreen(display.screen)
         self._widget.setGeometry(display.screen.geometry())
         self._pause_label.setScreen(display.screen)
@@ -106,6 +119,7 @@ class TestDisplayManager(QObject):
         self._pause_label.hide()
         self._is_paused = False
         self.statusChanged.emit()
+        self._set_backlight(self._starting_backlight)
 
     def pause(self) -> None:
         self._is_paused = True
@@ -158,6 +172,7 @@ class TestDisplayManager(QObject):
 
     def _set_backlight(self, backlight: int) -> None:
         if self._display and self._display.vcp is not None:
+            backlight = min(self._backlight_max, backlight)
             with self._display.vcp:
                 self._display.vcp.backlight = backlight
 
