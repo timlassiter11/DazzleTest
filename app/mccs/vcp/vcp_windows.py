@@ -1,4 +1,3 @@
-import stat
 from .vcp_abc import BaseVCP, VCPError
 from types import TracebackType
 from typing import Type, Literal

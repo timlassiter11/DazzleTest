@@ -1,4 +1,5 @@
 import json
+import logging
 
 from PySide6.QtCore import QSettings, Qt
 from PySide6.QtGui import QCloseEvent, QGuiApplication
@@ -19,6 +20,7 @@ from app.utils import get_test_image
 
 _last_used_file = "last_used.json"
 
+logger = logging.getLogger(__name__)
 
 class MainWindow(QMainWindow):
     def __init__(self) -> None:
@@ -58,7 +60,7 @@ class MainWindow(QMainWindow):
         self._test_manager.statusChanged.connect(self.on_test_manager_status_changed)
         self._test_manager.stepChanged.connect(self.on_test_manager_step_changed)
 
-        # Create a list of all of the phsyical displays
+        '''# Create a list of all of the phsyical displays
         for screen in QGuiApplication.screens():
             self._test_displays[screen.name()] = TestDisplay(
                 name=screen.name(),
@@ -78,7 +80,31 @@ class MainWindow(QMainWindow):
                         test_display.capabilities = caps
 
                 except VCPError as e:
-                    pass
+                    pass'''
+        
+        screens = QGuiApplication.screens()
+        monitors = get_monitors()
+        if screens:
+            #TODO: Figure out how to tie a VCP / MCCS monitor to a screen
+            screen = screens[0]
+            if len(screens) != 1:
+                logger.warning("Found multiple displays. Defaulting to the first one")
+            
+            monitor = None
+            caps = None
+            if len(monitors) == 1:
+                monitor = monitors[0]
+                with monitor:
+                    caps = monitor.get_vcp_capabilities()
+            elif len(monitors) > 1:
+                logger.warning("Found multiple DDC/CI interfaces. DDC/CI will be disabled")
+            
+            self._test_displays[screen.name()] = TestDisplay(
+                name=screen.name(),
+                screen=screen,
+                vcp=monitor,
+                capabilities=caps
+            )
 
         # Add the displays to the list widget
         for test_display in self._test_displays.values():
@@ -88,7 +114,7 @@ class MainWindow(QMainWindow):
                 name += "*"
                 tooltip = "Does not support software control"
             elif (
-                VCPDefinitions.BACKLIGHT_LEVEL_WHITE
+                VCPDefinitions.BACKLIGHT_LEVEL_WHITE.value
                 not in test_display.capabilities.vcps
             ):
                 name += "*"
