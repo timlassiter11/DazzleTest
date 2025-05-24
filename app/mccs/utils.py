@@ -1,3 +1,8 @@
+"""
+This module provides utility functions for the MCCS package.
+
+Currently, it includes a function to parse MCCS VCP capability strings.
+"""
 import re
 from typing import List, Dict, Optional, Union # For type hinting
 
