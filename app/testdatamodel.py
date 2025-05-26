@@ -113,9 +113,7 @@ class TestDataTableModel(QAbstractTableModel):
         self.endResetModel()
 
     def flags(self, index: _ModelIndexType):
-        if not index.isValid():
+        if not index.isValid() or index.column() == TestDataColumn.STEP_NUM_COLUMN:
             return Qt.ItemFlag.NoItemFlags
-        if index.column() == TestDataColumn.STEP_NUM_COLUMN:
-            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
         return Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
 
