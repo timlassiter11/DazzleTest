@@ -157,7 +157,7 @@ class TestDisplayManager(QObject):
 
     def stop(self) -> None:
         self._widget.hide()
-        self.resume(animate=False)
+        self._hide_pause_widget(animate=False)
         self.statusChanged.emit()
         self._set_backlight(self._starting_backlight)
 
@@ -254,9 +254,7 @@ class TestDisplayManager(QObject):
         )
 
     def _set_backlight(self, backlight: int) -> None:
-        assert self._display is not None, "Display must be set before setting backlight"
-
-        if self._display.mccs_monitor and self._can_set_backlight():
+        if self._display and self._display.mccs_monitor and self._can_set_backlight():
             # Clamp backlight value to be within [0, _backlight_max]
             backlight = max(0, min(self._backlight_max, backlight))
             self._display.mccs_monitor.backlight = backlight
