@@ -182,6 +182,7 @@ class MainWindow(QMainWindow):
         if filename:
             self._load_from_file(filename)
             self._current_file = filename
+            self.setWindowModified(False)
 
     def on_add_step_clicked(self) -> None:
         
