@@ -1,9 +1,12 @@
-from .vcp_abc import BaseVCP, VCPError
+from venv import logger
+from . import BaseVCP, VCPError
 from types import TracebackType
 from typing import Type, Literal
 import ctypes
 import logging
 import sys
+
+logger = logging.getLogger(__name__)
 
 # hide the Windows code from Linux CI coverage
 if sys.platform == "win32":
@@ -36,12 +39,11 @@ if sys.platform == "win32":
             Args:
                 hmonitor: logical monitor handle
             """
-            self.logger = logging.getLogger(__name__)
             self.hmonitor = hmonitor
 
         def __enter__(self):
             num_physical = DWORD()
-            self.logger.debug("GetNumberOfPhysicalMonitorsFromHMONITOR")
+            logger.debug("GetNumberOfPhysicalMonitorsFromHMONITOR")
             try:
                 if not ctypes.windll.dxva2.GetNumberOfPhysicalMonitorsFromHMONITOR(
                     self.hmonitor, ctypes.byref(num_physical)
@@ -64,7 +66,7 @@ if sys.platform == "win32":
                 raise VCPError("more than one physical monitor per hmonitor")
 
             physical_monitors = (PhysicalMonitor * num_physical.value)()
-            self.logger.debug("GetPhysicalMonitorsFromHMONITOR")
+            logger.debug("GetPhysicalMonitorsFromHMONITOR")
             try:
                 if not ctypes.windll.dxva2.GetPhysicalMonitorsFromHMONITOR(
                     self.hmonitor, num_physical.value, physical_monitors
@@ -85,7 +87,7 @@ if sys.platform == "win32":
             exception_value: BaseException | None,
             exception_traceback: TracebackType | None,
         ) -> Literal[False]:
-            self.logger.debug("DestroyPhysicalMonitor")
+            logger.debug("DestroyPhysicalMonitor")
             try:
                 if not ctypes.windll.dxva2.DestroyPhysicalMonitor(self.handle):
                     raise VCPError(
@@ -107,7 +109,7 @@ if sys.platform == "win32":
             Raises:
                 VCPError: Failed to set VCP feature.
             """
-            self.logger.debug(f"SetVCPFeature(_, {code=}, {value=})")
+            logger.debug(f"SetVCPFeature(_, {code=}, {value=})")
             try:
                 if not ctypes.windll.dxva2.SetVCPFeature(
                     HANDLE(self.handle), BYTE(code), DWORD(value)
@@ -131,9 +133,7 @@ if sys.platform == "win32":
             """
             feature_current = DWORD()
             feature_max = DWORD()
-            self.logger.debug(
-                f"GetVCPFeatureAndVCPFeatureReply(_, {code=}, None, _, _)"
-            )
+            logger.debug(f"GetVCPFeatureAndVCPFeatureReply(_, {code=}, None, _, _)")
             try:
                 if not ctypes.windll.dxva2.GetVCPFeatureAndVCPFeatureReply(
                     HANDLE(self.handle),
@@ -145,7 +145,7 @@ if sys.platform == "win32":
                     raise VCPError("failed to get VCP feature: " + ctypes.FormatError())
             except OSError as e:
                 raise VCPError("failed to get VCP feature") from e
-            self.logger.debug(
+            logger.debug(
                 "GetVCPFeatureAndVCPFeatureReply -> "
                 f"({feature_current.value}, {feature_max.value})"
             )
@@ -167,7 +167,7 @@ if sys.platform == "win32":
             """
 
             cap_length = DWORD()
-            self.logger.debug("GetCapabilitiesStringLength")
+            logger.debug("GetCapabilitiesStringLength")
             try:
                 if not ctypes.windll.dxva2.GetCapabilitiesStringLength(
                     HANDLE(self.handle), ctypes.byref(cap_length)
@@ -176,7 +176,7 @@ if sys.platform == "win32":
                         "failed to get VCP capabilities: " + ctypes.FormatError()
                     )
                 cap_string = (ctypes.c_char * cap_length.value)()
-                self.logger.debug("CapabilitiesRequestAndCapabilitiesReply")
+                logger.debug("CapabilitiesRequestAndCapabilitiesReply")
                 if not ctypes.windll.dxva2.CapabilitiesRequestAndCapabilitiesReply(
                     HANDLE(self.handle), cap_string, cap_length
                 ):

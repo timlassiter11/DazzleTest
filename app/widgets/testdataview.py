@@ -2,14 +2,14 @@ from PySide6.QtCore import QModelIndex, Qt, Signal, QPersistentModelIndex, QAbst
 from PySide6.QtWidgets import QComboBox, QSpinBox, QStyledItemDelegate, QTableView, QWidget, QStyleOptionViewItem, QHeaderView
 
 from app.testdatamodel import TestDataColumn, TestDataTableModel, TestStep
-from app.utils import get_test_images, test_image_filename_to_display_name
+from app.utils import get_test_images, file_to_display_name
 
 class TestDataEditDelegate(QStyledItemDelegate):
     def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
         if index.column() == TestDataColumn.IMAGE_COLUMN: 
             cb = QComboBox(parent)
             for filename in get_test_images():
-                display_name = test_image_filename_to_display_name(filename)
+                display_name = file_to_display_name(filename)
                 cb.addItem(display_name, filename)
                 cb.currentIndexChanged.connect(lambda: cb.clearFocus())
             return cb

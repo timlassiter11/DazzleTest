@@ -9,7 +9,7 @@ from PySide6.QtCore import (
     Qt,
 )
 
-from app.utils import test_image_filename_to_display_name
+from app.utils import file_to_display_name
 
 _ParentIndexType = QModelIndex | QPersistentModelIndex
 
@@ -71,7 +71,7 @@ class TestDataTableModel(QAbstractTableModel):
             elif index.column() == TestDataColumn.NAME_COLUMN:
                 return self._data[index.row()].name
             elif index.column() == TestDataColumn.IMAGE_COLUMN:
-                return test_image_filename_to_display_name(self._data[index.row()].image)
+                return file_to_display_name(self._data[index.row()].image)
             elif index.column() == TestDataColumn.BACKLIGHT_COLUMN:
                 return self._data[index.row()].backlight
         elif role == Qt.ItemDataRole.EditRole:

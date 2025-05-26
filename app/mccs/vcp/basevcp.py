@@ -3,24 +3,6 @@ from types import TracebackType
 from typing import Type
 
 
-class VCPError(Exception):
-    """Base class for all VCP related errors."""
-
-    pass
-
-
-class VCPIOError(VCPError):
-    """Raised on VCP IO errors."""
-
-    pass
-
-
-class VCPPermissionError(VCPError):
-    """Raised on VCP permission errors."""
-
-    pass
-
-
 class BaseVCP(abc.ABC):
     @abc.abstractmethod
     def __enter__(self):

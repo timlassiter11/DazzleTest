@@ -2,7 +2,7 @@ import json
 import logging
 
 from PySide6.QtCore import QSettings, Qt
-from PySide6.QtGui import QCloseEvent, QGuiApplication
+from PySide6.QtGui import QCloseEvent, QGuiApplication, QNativeInterface
 from PySide6.QtWidgets import (
     QApplication,
     QFileDialog,
@@ -11,8 +11,10 @@ from PySide6.QtWidgets import (
     QMessageBox,
 )
 
-from app.mccs import VCPError, get_monitors
-from app.mccs.mccs import VCPDefinitions
+from app.mccs import get_monitors
+from app.mccs.mccs import MCCSCommand
+from app.mccs.vcp import VCPError
+from app.mccs.vcp.windowsvcp import WindowsVCP
 from app.testdatamodel import TestDataColumn, TestStep
 from app.testdisplaymanager import TestDisplay, TestDisplayManager
 from app.ui.ui_mainwindow import Ui_MainWindow
@@ -60,63 +62,43 @@ class MainWindow(QMainWindow):
         self._test_manager.statusChanged.connect(self.on_test_manager_status_changed)
         self._test_manager.stepChanged.connect(self.on_test_manager_step_changed)
 
-        '''# Create a list of all of the phsyical displays
-        for screen in QGuiApplication.screens():
-            self._test_displays[screen.name()] = TestDisplay(
-                name=screen.name(),
-                screen=screen,
-            )
-
-        # Loop through all of the DDC/CI monitors and
-        # try to match them with the physical displays
-        monitors = get_monitors()
-        for monitor in monitors:
-            with monitor:
-                try:
-                    caps = monitor.get_vcp_capabilities()
-                    if caps.model in self._test_displays:
-                        test_display = self._test_displays[caps.model]
-                        test_display.vcp = monitor
-                        test_display.capabilities = caps
-
-                except VCPError as e:
-                    pass'''
-        
         screens = QGuiApplication.screens()
         monitors = get_monitors()
-        if screens:
-            #TODO: Figure out how to tie a VCP / MCCS monitor to a screen
-            screen = screens[0]
-            if len(screens) != 1:
-                logger.warning("Found multiple displays. Defaulting to the first one")
-            
-            monitor = None
-            caps = None
-            if len(monitors) == 1:
-                monitor = monitors[0]
-                with monitor:
-                    caps = monitor.get_vcp_capabilities()
-            elif len(monitors) > 1:
-                logger.warning("Found multiple DDC/CI interfaces. DDC/CI will be disabled")
-            
-            self._test_displays[screen.name()] = TestDisplay(
-                name=screen.name(),
-                screen=screen,
-                vcp=monitor,
-                capabilities=caps
-            )
+
+        for screen in screens:
+            display = TestDisplay(pyside_screen=screen)
+            self._test_displays[display.name] = display
+
+            # Try to match the QScreen with the MCCS monitor
+            iface = screen.nativeInterface()
+            if isinstance(iface, QNativeInterface.QWindowsScreen):
+                for monitor in monitors:
+                    vcp = monitor.vcp
+                    # This should always be true since iface is a WindowsScreen
+                    # but it helps with type checking
+                    if isinstance(vcp, WindowsVCP):
+                        # Check if the MCCS monitor's handle matches the QScreen's handle
+                        if vcp.hmonitor.value == iface.handle():
+                            try:
+                                # Try to get the capabilities of the monitor
+                                # This can sometimes throw a VCP error if the monitor's
+                                # capabilities string does not match the expected format
+                                caps = monitor.capabilities
+                                # Only set the monitor if we can get the capabilities
+                                display.mccs_monitor = monitor
+                            except VCPError as e:
+                                logger.warning(f"Failed to get capabilities for monitor {display.name}")
+                                logger.debug(e, exc_info=True)
 
         # Add the displays to the list widget
         for test_display in self._test_displays.values():
             name = test_display.name
             tooltip = ""
-            if test_display.vcp is None or test_display.capabilities is None:
+
+            if test_display.mccs_monitor is None:
                 name += "*"
                 tooltip = "Does not support software control"
-            elif (
-                VCPDefinitions.BACKLIGHT_LEVEL_WHITE.value
-                not in test_display.capabilities.vcps
-            ):
+            elif not test_display.mccs_monitor.supports_vcp(MCCSCommand.BACKLIGHT_LEVEL_WHITE):
                 name += "*"
                 tooltip = "Does not support backlight control"
 

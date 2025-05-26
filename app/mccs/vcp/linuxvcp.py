@@ -1,16 +1,21 @@
-from .vcp_abc import BaseVCP, VCPIOError, VCPPermissionError
-from types import TracebackType
-from typing import Literal, Type
+import logging
 import os
 import struct
 import sys
 import time
-import logging
+from types import TracebackType
+from typing import Literal, Type
+
+from . import BaseVCP, VCPIOError, VCPPermissionError
 
 # hide the Linux code from Windows CI coverage
 if sys.platform.startswith("linux"):
     import fcntl
+
     import pyudev
+
+
+logger = logging.getLogger(__name__)
 
 
 class LinuxVCP(BaseVCP):
@@ -53,7 +58,6 @@ class LinuxVCP(BaseVCP):
         Args:
             bus_number: I2C bus number.
         """
-        self.logger = logging.getLogger(__name__)
         self.bus_number = bus_number
         self.fd = 0
         self.fp: str = f"/dev/i2c-{self.bus_number}"
@@ -123,7 +127,7 @@ class LinuxVCP(BaseVCP):
         data.append(self.get_checksum(bytearray([self.DDCCI_ADDR << 1]) + data))
 
         # write data
-        self.logger.debug("data=" + " ".join([f"{x:02X}" for x in data]))
+        logger.debug("data=" + " ".join([f"{x:02X}" for x in data]))
         self.write_bytes(data)
 
         # store time of last set VCP
@@ -155,18 +159,18 @@ class LinuxVCP(BaseVCP):
         data.append(self.get_checksum(bytearray([self.DDCCI_ADDR << 1]) + data))
 
         # write data
-        self.logger.debug("data=" + " ".join([f"{x:02X}" for x in data]))
+        logger.debug("data=" + " ".join([f"{x:02X}" for x in data]))
         self.write_bytes(data)
 
         time.sleep(self.GET_VCP_TIMEOUT)
 
         # read the data
         header = self.read_bytes(self.GET_VCP_HEADER_LENGTH)
-        self.logger.debug("header=" + " ".join([f"{x:02X}" for x in header]))
+        logger.debug("header=" + " ".join([f"{x:02X}" for x in header]))
         source, length = struct.unpack("=BB", header)
         length &= ~self.PROTOCOL_FLAG  # clear protocol flag
         payload = self.read_bytes(length + 1)
-        self.logger.debug("payload=" + " ".join([f"{x:02X}" for x in payload]))
+        logger.debug("payload=" + " ".join([f"{x:02X}" for x in payload]))
 
         # check checksum
         payload, checksum = struct.unpack(f"={length}sB", payload)
@@ -177,7 +181,7 @@ class LinuxVCP(BaseVCP):
             if self.CHECKSUM_ERRORS.lower() == "strict":
                 raise VCPIOError(message)
             elif self.CHECKSUM_ERRORS.lower() == "warning":
-                self.logger.warning(message)
+                logger.warning(message)
             # else ignore
 
         # unpack the payload
@@ -254,11 +258,11 @@ class LinuxVCP(BaseVCP):
 
             # read the data
             header = self.read_bytes(self.GET_VCP_HEADER_LENGTH)
-            self.logger.debug("header=" + " ".join([f"{x:02X}" for x in header]))
+            logger.debug("header=" + " ".join([f"{x:02X}" for x in header]))
             source, length = struct.unpack("BB", header)
             length &= ~self.PROTOCOL_FLAG  # clear protocol flag
             payload = self.read_bytes(length + 1)
-            self.logger.debug("payload=" + " ".join([f"{x:02X}" for x in payload]))
+            logger.debug("payload=" + " ".join([f"{x:02X}" for x in payload]))
 
             # check if length is valid
             if length < 3 or length > 35:
@@ -273,7 +277,7 @@ class LinuxVCP(BaseVCP):
                 if self.CHECKSUM_ERRORS.lower() == "strict":
                     raise VCPIOError(message)
                 elif self.CHECKSUM_ERRORS.lower() == "warning":
-                    self.logger.warning(message)
+                    logger.warning(message)
                 # else ignore
             # remove checksum from length
 
@@ -296,7 +300,7 @@ class LinuxVCP(BaseVCP):
             # update the offset and go again
             offset += length
 
-        self.logger.debug(f"caps str={caps_str}")
+        logger.debug(f"caps str={caps_str}")
 
         if loop_count >= loop_count_limit:
             raise VCPIOError("Capabilities string incomplete or too long")

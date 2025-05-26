@@ -3,7 +3,7 @@ from PySide6.QtGui import QPixmap
 
 from app import TEST_IMAGES_DIR
 
-def test_image_filename_to_display_name(filename: str) -> str:
+def file_to_display_name(filename: str) -> str:
     """Convert a filename to a display name"""
     try:
         start_index = filename.index("_") + 1
