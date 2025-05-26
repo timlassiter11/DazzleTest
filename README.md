@@ -2,11 +2,11 @@
 
 Prepare to be... well, properly tested! **DazzleTest** is your go-to utility for putting displays through their paces, ensuring they shine brightly and accurately (but not *too* much, unless that's what you're testing for!).
 
-## Overview
-
-DazzleTest is a software tool designed for display enthusiasts, QA professionals, and anyone who needs to conduct detailed and repeatable visual tests on displays. It empowers you to create custom sequences of test images, each paired with a specific backlight value, giving you precise control over your testing environment.
+DazzleTest is a software tool designed for anyone who needs to conduct detailed and repeatable visual tests on displays. It empowers you to create custom sequences of test images that are displayed fullscreen, each paired with a specific backlight value, giving you precise control over your testing environment.
 
 Say goodbye to manually clicking through images and fumbling with monitor buttons – DazzleTest automates the process, especially when working with displays that support DDC/CI for backlight control.
+
+![Screenshot1](./docs/images/Screenshot1_dark.png)
 
 ## Key Features
 
