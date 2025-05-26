@@ -1,17 +1,38 @@
-from PySide6.QtCore import QModelIndex, Qt, Signal, QPersistentModelIndex, QAbstractItemModel
-from PySide6.QtWidgets import QComboBox, QSpinBox, QStyledItemDelegate, QTableView, QWidget, QStyleOptionViewItem, QHeaderView
+from PySide6.QtCore import (
+    QAbstractItemModel,
+    QModelIndex,
+    QPersistentModelIndex,
+    Qt,
+    Signal,
+)
+from PySide6.QtWidgets import (
+    QComboBox,
+    QSpinBox,
+    QStyledItemDelegate,
+    QStyleOptionViewItem,
+    QTableView,
+    QWidget,
+)
 
 from app.testdatamodel import TestDataColumn, TestDataTableModel, TestStep
-from app.utils import get_test_images, file_to_display_name
+from app.utils import file_to_display_name, get_test_images
+
 
 class TestDataEditDelegate(QStyledItemDelegate):
-    def createEditor(self, parent: QWidget, option: QStyleOptionViewItem, index: QModelIndex | QPersistentModelIndex):
-        if index.column() == TestDataColumn.IMAGE_COLUMN: 
+    def createEditor(
+        self,
+        parent: QWidget,
+        option: QStyleOptionViewItem,
+        index: QModelIndex | QPersistentModelIndex,
+    ):
+        if index.column() == TestDataColumn.IMAGE_COLUMN:
             cb = QComboBox(parent)
             for filename in get_test_images():
                 display_name = file_to_display_name(filename)
                 cb.addItem(display_name, filename)
-                cb.currentIndexChanged.connect(lambda: cb.clearFocus())
+
+            #cb.currentIndexChanged.connect(lambda: cb.clearFocus())
+            cb.activated.connect(lambda: self.setModelData(cb, index.model(), index))
             return cb
         elif index.column() == TestDataColumn.BACKLIGHT_COLUMN:
             sb = QSpinBox(parent)
@@ -20,7 +41,9 @@ class TestDataEditDelegate(QStyledItemDelegate):
             return sb
         return super().createEditor(parent, option, index)
 
-    def setEditorData(self, editor: QWidget, index: QModelIndex | QPersistentModelIndex):
+    def setEditorData(
+        self, editor: QWidget, index: QModelIndex | QPersistentModelIndex
+    ):
         if index.column() == TestDataColumn.IMAGE_COLUMN:
             value = index.model().data(index, Qt.ItemDataRole.DisplayRole)
         else:
@@ -34,7 +57,12 @@ class TestDataEditDelegate(QStyledItemDelegate):
         else:
             super().setEditorData(editor, index)
 
-    def setModelData(self, editor: QWidget, model: QAbstractItemModel, index: QModelIndex | QPersistentModelIndex):
+    def setModelData(
+        self,
+        editor: QWidget,
+        model: QAbstractItemModel,
+        index: QModelIndex | QPersistentModelIndex,
+    ):
         if isinstance(editor, QComboBox):
             model.setData(index, editor.currentData(), Qt.ItemDataRole.EditRole)
         elif isinstance(editor, QSpinBox):
@@ -47,7 +75,7 @@ class TestDataView(QTableView):
     currentRowChanged = Signal(int)
     currentRowDataChanged = Signal()
     stepDataChanged = Signal(int)
-    
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self._model = TestDataTableModel([], self)
@@ -82,10 +110,10 @@ class TestDataView(QTableView):
 
     def count(self) -> int:
         return self._model.rowCount()
-    
+
     def step(self, row: int) -> TestStep:
         return self._model.step(row)
-    
+
     def steps(self) -> list[TestStep]:
         return self._model.steps()
 
@@ -95,11 +123,16 @@ class TestDataView(QTableView):
     def _on_current_row_changed(self, current: QModelIndex, previous: QModelIndex):
         self.currentRowChanged.emit(current.row())
 
-    def dataChanged(self, topLeft: QModelIndex | QPersistentModelIndex, bottomRight: QModelIndex | QPersistentModelIndex, /, roles = ...):
+    def dataChanged(
+        self,
+        topLeft: QModelIndex | QPersistentModelIndex,
+        bottomRight: QModelIndex | QPersistentModelIndex,
+        /,
+        roles=...,
+    ):
         start = topLeft.row()
         end = bottomRight.row()
         for row in range(start, end + 1):
             self.stepDataChanged.emit(row)
 
         return super().dataChanged(topLeft, bottomRight, roles)
-        
