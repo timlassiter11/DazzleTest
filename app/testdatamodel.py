@@ -11,7 +11,7 @@ from PySide6.QtCore import (
 
 from app.utils import file_to_display_name
 
-_ParentIndexType = QModelIndex | QPersistentModelIndex
+_ModelIndexType = QModelIndex | QPersistentModelIndex
 
 class TestDataColumn(IntEnum):
     STEP_NUM_COLUMN = 0
@@ -55,13 +55,13 @@ class TestDataTableModel(QAbstractTableModel):
                     return "Backlight"
         return None
 
-    def rowCount(self, parent: _ParentIndexType | None = None) -> int:
+    def rowCount(self, parent: _ModelIndexType | None = None) -> int:
         return len(self._data)
 
-    def columnCount(self, /, parent: _ParentIndexType | None = None) -> int:
+    def columnCount(self, /, parent: _ModelIndexType | None = None) -> int:
         return 4
 
-    def data(self, index: _ParentIndexType, role: int = Qt.ItemDataRole.DisplayRole):
+    def data(self, index: _ModelIndexType, role: int = Qt.ItemDataRole.DisplayRole):
         if not index.isValid() or index.row() >= len(self._data):
             return None
 
@@ -82,7 +82,7 @@ class TestDataTableModel(QAbstractTableModel):
             elif index.column() == TestDataColumn.BACKLIGHT_COLUMN:
                 return self._data[index.row()].backlight
             
-    def setData(self, index: _ParentIndexType, value, /, role = ...):
+    def setData(self, index: _ModelIndexType, value, /, role = ...):
         changed = False
         if index.isValid() and index.row() < len(self._data):
             if role == Qt.ItemDataRole.EditRole:
@@ -112,6 +112,10 @@ class TestDataTableModel(QAbstractTableModel):
         self._data.clear()
         self.endResetModel()
 
-    def flags(self, index):
-         return Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
+    def flags(self, index: _ModelIndexType):
+        if not index.isValid():
+            return Qt.ItemFlag.NoItemFlags
+        if index.column() == TestDataColumn.STEP_NUM_COLUMN:
+            return Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsSelectable
+        return Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsEditable
 
