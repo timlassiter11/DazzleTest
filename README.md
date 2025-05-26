@@ -7,6 +7,7 @@ DazzleTest is a software tool designed for anyone who needs to conduct detailed 
 Say goodbye to manually clicking through images and fumbling with monitor buttons – DazzleTest automates the process, especially when working with displays that support DDC/CI for backlight control.
 
 ![Screenshot1](./docs/images/Screenshot1_dark.png)
+![Screenshot2](./docs/images/Screenshot2_cropped_dark.png)
 
 ## Key Features
 
